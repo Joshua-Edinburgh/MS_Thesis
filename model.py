@@ -46,11 +46,13 @@ class ConvModel(nn.Module):
         self.lin3 = nn.Linear(128, 2)
 
         hidden_size = 64
-
+        #============ Why the num of embeddings is vocab_size+2?===============
         self.embeddings = nn.Embedding(vocab_size+2, hidden_size, padding_idx=vocab_size)
 
         self.gru = nn.GRU(input_size=hidden_size, hidden_size=hidden_size, batch_first=True)
-
+        
+        #========= Initialize the subnetworks according to their type.=========
+        # self.modules() stores all the network and subnetwork of this class
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='relu')
@@ -61,6 +63,11 @@ class ConvModel(nn.Module):
             #     nn.init.xavier_uniform_(m.weight)
 
     def image_rep(self, input):
+        '''
+            Image representation. Input is batch of images.
+            Each image in a batch will be transposed to a vector. 
+            input --> CNN --> FC
+        '''
         batch_size = input.size(0)
         output = self.conv_net(input.transpose(1,3)).view(batch_size, -1)
         output = self.lin(output)
@@ -68,8 +75,11 @@ class ConvModel(nn.Module):
         return output
 
     def sentence_rep(self, input):
-        sentence_lengths = get_sentence_lengths(input, vocab_size=self.vocab_size)
+        '''
+            Sentence representation. Input is one sentence.
 
+        '''
+        sentence_lengths = get_sentence_lengths(input, vocab_size=self.vocab_size)
         output = self.embeddings(input)
 
         output, hidden = self.gru(output)

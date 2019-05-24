@@ -53,6 +53,16 @@ def pick_random_object_type(exclude=None):
 
 
 def get_batches(images_cache, data_n_samples, n_batches=20, batch_size=50):
+    '''
+        In each batch, we have four different pairs:
+            1. same color same shape
+            2. same color diff shape
+            3. diff color same shape
+            4. rand color rand shape
+        Note that the same color and same shape can have different positions.
+        Output structure:
+            
+    '''
     batches = []
 
     n_same = int(0.25*batch_size)
@@ -82,10 +92,10 @@ def get_batches(images_cache, data_n_samples, n_batches=20, batch_size=50):
             object_type2, color2 = pick_random_object_type(), pick_random_color()
             pairs.append(((object_type, color), (object_type2, color2)))
 
-        input1 = []
-        input2 = []
-        labels = []
-        descriptions = []
+        input1 = []     # Image 1
+        input2 = []     # Image 2
+        labels = []     # Whether they're the same
+        descriptions = [] # Description of two figures, two tuples
 
         for pair in pairs:
             max_i = data_n_samples
@@ -93,8 +103,9 @@ def get_batches(images_cache, data_n_samples, n_batches=20, batch_size=50):
             label = object_type1 == object_type2 and color1 == color2
 
             id1 = random.randint(0, max_i-1)
-            img1 = images_cache[color1, object_type1, id1] / 256
-
+            img1 = images_cache[color1, object_type1, id1] / 256    # Each pixel should in [0,1]
+            
+            # Here avoid selecting same figure when label=True
             if label:
                 available_ids = list(range(id1)) + list(range(id1+1, max_i))
                 id2 = random.choice(available_ids)

@@ -32,6 +32,7 @@ agent2 = ConvModel(vocab_size=args.vocab_size).to(device)
 
 loss_fn = NLLLoss()
 
+# Remember the way it used for initialize parameters according to whether it require grad.
 optimizer1 = torch.optim.Adam([p for p in agent1.parameters() if p.requires_grad], args.lr)
 optimizer2 = torch.optim.Adam([p for p in agent2.parameters() if p.requires_grad], args.lr)
 
@@ -41,6 +42,14 @@ def get_message(s):
 
 
 def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_size):
+    '''
+        Input:
+            speaker, listener: the agent initialized using ConvModel
+            batches: the data input (image1, image2, label, description)
+            optimizer: 
+            max_sentence_len:
+            vocab_size:           
+    '''
     speaker.train(False)
     listener.train(True)
 

@@ -1,0 +1,43 @@
+# ============ MLP Cluster =================
+For log in:
+1. ssh s1583620@student.ssh.inf.ed.ac.uk
+2. ssh mlp1
+3. source .bashrc
+4. source activate ms_thesis
+Then we will in this environment.
+
+For interactive job: "http://computing.help.inf.ed.ac.uk/slurm"
+1. srun --gres=gpu:1 --pty bash
+2. source /home/s1583620/miniconda3/bin/activate ms_thesis
+Then we can just use this terminal as usual.
+3. exit
+
+
+For batch release: "https://bitsanddragons.wordpress.com/2017/04/12/slurm-user-cheatsheet/"
+Submit: sbatch ***.sh
+See list: squeue
+See my list: squeue -u s1583620
+Cancel job: scancel job_id
+
+
+# ================= Shawn's Server =============
+ssh 226
+ssh 93 (83,84,86)
+
+Screen operation:
+Create:       screen -s name
+Jump out:     Ctrl+A+D
+List all:     screen -list
+Connect back: screen -r name
+
+Create Env.:  virtualenv name --python=python3
+Activate Env.:source name/bin/activate
+
+Watch GPU status: watch -n 1 nvidia-smi
+
+
+
+
+
+
+

@@ -81,11 +81,11 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
             speaker_action, speaker_prob, description, label, listener_prob = t
             speaker_object, listener_object = description
             message = get_message(speaker_action)
-            print("message: '%s', speaker object: %s, speaker score: %.2f, listener object: %s, label: %d, listener score: %.2f" %
-                  (message, speaker_object, speaker_prob, listener_object, label.item(), listener_prob.item()))
+            #print("message: '%s', speaker object: %s, speaker score: %.2f, listener object: %s, label: %d, listener score: %.2f" %
+            #      (message, speaker_object, speaker_prob, listener_object, label.item(), listener_prob.item()))
 
-        print("batch accuracy", n_correct.item() / len(input1))
-        print("batch loss", listener_loss.item())
+        #print("batch accuracy", n_correct.item() / len(input1))
+        #print("batch loss", listener_loss.item())
 
         round_correct += n_correct
         round_total += len(input1)

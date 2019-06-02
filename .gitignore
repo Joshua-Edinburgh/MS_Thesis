@@ -1,2 +1,5 @@
 assets/*.png
 assets/*.pkl
+__pycache__
+mnist
+runs

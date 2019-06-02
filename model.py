@@ -16,6 +16,26 @@ class ConvModel(nn.Module):
         super().__init__()
         self.vocab_size = vocab_size
         n_filters = 20
+        # For 32x32 data, we should use a smaller CNN
+
+        self.conv_net = nn.Sequential(
+            nn.Conv2d(3, n_filters, 3, stride=2),
+            nn.BatchNorm2d(n_filters),
+            nn.ReLU(),
+            nn.Conv2d(n_filters, n_filters, 3, stride=2),
+            nn.BatchNorm2d(n_filters),
+            nn.ReLU(),
+            nn.Conv2d(n_filters, n_filters, 3, stride=2),
+            nn.BatchNorm2d(n_filters),
+            nn.ReLU(),
+        )        
+        self.lin = nn.Sequential(
+            nn.Linear(180, 50),
+            nn.ReLU(),
+        )
+        
+        '''
+        # For 128x128 data, we should use a larger CNN
         self.conv_net = nn.Sequential(
             nn.Conv2d(3, n_filters, 3, stride=2),
             nn.BatchNorm2d(n_filters),
@@ -32,12 +52,12 @@ class ConvModel(nn.Module):
             nn.Conv2d(n_filters, n_filters, 3, stride=2),
             nn.BatchNorm2d(n_filters),
             nn.ReLU(),
-        )
-
+        )        
         self.lin = nn.Sequential(
             nn.Linear(180, 50),
             nn.ReLU(),
         )
+        '''
 
         self.lin2 = nn.Sequential(
             nn.Linear(50+64, 128),

@@ -1,5 +1,4 @@
-assets/*.png
-assets/*.pkl
+assets
 __pycache__
 mnist
 runs

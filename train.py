@@ -24,7 +24,7 @@ args = parser.parse_args()
 
 images_dict = load_images_dict(args.data_n_samples)
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 
 agent1 = ConvModel(vocab_size=args.vocab_size).to(device)
 agent2 = ConvModel(vocab_size=args.vocab_size).to(device)
@@ -59,17 +59,18 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
     round_sentence_length = 0
 
     for batch in batches:
+        # ========== Input data extraction ================
         input1, input2, labels, descriptions = batch
-
         input1, input2 = torch.tensor(input1).float().to(device), torch.tensor(input2).float().to(device)
         labels = torch.tensor(labels).to(device)
-
+        
+        # ========== Play the game and backpropagation ================
         speaker_actions, speaker_probs = obverter.decode(speaker, input1, max_sentence_len, vocab_size, device)
 
         lg, probs = listener(input2, speaker_actions)
-        predictions = torch.round(probs).long()
+        predictions = torch.round(probs).long()     # Convert the probabilities to 0/1 predictions
         correct_vector = (predictions == labels).float()
-        n_correct = correct_vector.sum()
+        n_correct = correct_vector.sum()            # out of batch_size
 
         listener_loss = loss_fn(lg, labels.long())
 
@@ -86,10 +87,11 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
 
         #print("batch accuracy", n_correct.item() / len(input1))
         #print("batch loss", listener_loss.item())
-
+        
+        # ========== Stats for a round (e.g. 20 games, each game have 50 batch_size data)
         round_correct += n_correct
         round_total += len(input1)
-        round_loss += listener_loss * len(input1)
+        round_loss += listener_loss * len(input1)       # !!!! Why * len(input1)???
         round_sentence_length += (speaker_actions < vocab_size).sum(dim=1).float().mean() * len(input1)
 
     round_accuracy = (round_correct / round_total).item()

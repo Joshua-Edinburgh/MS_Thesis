@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import obverter
 from data import load_images_dict, get_batches
 from model import ConvModel
+from resultrecorder import *
 
 plt.switch_backend('agg')
 
@@ -18,7 +19,7 @@ parser.add_argument('--num_rounds', type=int, default=20000, help='number of tot
 parser.add_argument('--num_games_per_round', type=int, default=20, help='number of games per round')
 parser.add_argument('--vocab_size', type=int, default=5, help='vocabulary size')
 parser.add_argument('--max_sentence_len', type=int, default=20, help='maximum sentence length')
-parser.add_argument('--data_n_samples', type=int, default=100, help='number of samples per color, shape combination')
+parser.add_argument('--data_n_samples', type=int, default=3, help='number of samples per color, shape combination')
 
 args = parser.parse_args()
 
@@ -131,9 +132,15 @@ for round in range(args.num_rounds):
     print("replacing roles")
     print("********** round %d **********" % round)
 
-    round_accuracy, round_loss, round_sentence_length = train_round(agent2, agent1, batches, optimizer1, args.max_sentence_len, args.vocab_size)
+    round_accuracy, round_loss, round_sentence_length = train_round(agent2, agent1, batches, optimizer1, 
+                                                                    args.max_sentence_len, args.vocab_size)
     print_round_stats(round_accuracy, round_loss, round_sentence_length)
 
+    # ============ For function test ==================
+    attributes = [('blue','cylinder'), ('green','box')]
+    spk_msg = sample_msg_gen(speaker, attributes, images_dict, 
+                                      args.max_sentence_len, args.vocab_size, device, n_samples=3,)  
+    # ============ For function test ==================
     if round % 50 == 0:
         t = list(range(len(agent1_accuracy_history)))
         plt.plot(t, agent1_accuracy_history, label="Accuracy")

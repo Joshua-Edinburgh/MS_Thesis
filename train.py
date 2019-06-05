@@ -20,6 +20,8 @@ parser.add_argument('--num_games_per_round', type=int, default=20, help='number 
 parser.add_argument('--vocab_size', type=int, default=5, help='vocabulary size')
 parser.add_argument('--max_sentence_len', type=int, default=20, help='maximum sentence length')
 parser.add_argument('--data_n_samples', type=int, default=3, help='number of samples per color, shape combination')
+parser.add_argument('--exp_name', default='test', help='the name of the folder to store results')
+
 
 args = parser.parse_args()
 
@@ -42,7 +44,7 @@ def get_message(s):
     return ''.join([chr(97+int(v.cpu().data)) for v in s if v < args.vocab_size])
 
 
-def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_size):
+def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_size, idx_round):
     '''
         Input:
             speaker, listener: the agent initialized using ConvModel
@@ -79,16 +81,22 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
         listener_loss.backward()
         optimizer.step()
 
+        msg = {}
+        for n in range(len(labels)):
+            speaker_object, listen_object = descriptions[n]
+            msg[speaker_object] = get_message(speaker_actions[n])
+        '''
         for t in zip(speaker_actions, speaker_probs, descriptions, labels, probs):
             speaker_action, speaker_prob, description, label, listener_prob = t
             speaker_object, listener_object = description
-            message = get_message(speaker_action)
+            msg[speaker_object] = get_message(speaker_action)
+            #message = get_message(speaker_action)
             #print("message: '%s', speaker object: %s, speaker score: %.2f, listener object: %s, label: %d, listener score: %.2f" %
             #      (message, speaker_object, speaker_prob, listener_object, label.item(), listener_prob.item()))
 
         #print("batch accuracy", n_correct.item() / len(input1))
         #print("batch loss", listener_loss.item())
-        
+        '''
         # ========== Stats for a round (e.g. 20 games, each game have 50 batch_size data)
         round_correct += n_correct
         round_total += len(input1)
@@ -98,8 +106,8 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
     round_accuracy = (round_correct / round_total).item()
     round_loss = (round_loss / round_total).item()
     round_sentence_length = (round_sentence_length / round_total).item()
-
-    return round_accuracy, round_loss, round_sentence_length
+    
+    return round_accuracy, round_loss, round_sentence_length, msg
 
 
 agent1_accuracy_history = []
@@ -121,8 +129,10 @@ for round in range(args.num_rounds):
     print("********** round %d **********" % round)
     batches = get_batches(images_dict, args.data_n_samples, args.num_games_per_round, args.batch_size)
 
-    round_accuracy, round_loss, round_sentence_length = train_round(agent1, agent2, batches, optimizer2, args.max_sentence_len, args.vocab_size)
-    print_round_stats(round_accuracy, round_loss, round_sentence_length)
+    r_accuracy, r_loss, r_msglen, ag1_msg = train_round(agent1, agent2, batches, optimizer2, 
+                                                                    args.max_sentence_len, args.vocab_size,
+                                                                    idx_round = round)
+    #print_round_stats(round_accuracy, round_loss, round_sentence_length)
 
     agent1_accuracy_history.append(round_accuracy)
     agent1_message_length_history.append(round_sentence_length / 20)
@@ -132,10 +142,11 @@ for round in range(args.num_rounds):
     print("replacing roles")
     print("********** round %d **********" % round)
 
-    round_accuracy, round_loss, round_sentence_length = train_round(agent2, agent1, batches, optimizer1, 
-                                                                    args.max_sentence_len, args.vocab_size)
-    print_round_stats(round_accuracy, round_loss, round_sentence_length)
-
+    r_accuracy, r_loss, r_msglen, ag2_msg = train_round(agent2, agent1, batches, optimizer1, 
+                                                                    args.max_sentence_len, args.vocab_size,
+                                                                    idx_round = round)
+    train_recorder(round, r_accuracy, r_loss, r_msglen, ag1_msg, ag2_msg, rpt_gap = 10, folder='test')
+    #print_round_stats(round_accuracy, round_loss, round_sentence_length)
     # ============ For function test ==================
     attributes = [('blue','cylinder'), ('green','box')]
     spk_msg = sample_msg_gen(speaker, attributes, images_dict, 

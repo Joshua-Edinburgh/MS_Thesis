@@ -27,7 +27,7 @@ terminal, txt files, pdf files or npy files. Here are the functions:
     3.1 all_msg_gen(agent, colors, shapes)
     Help to generate messages for all the objects with ONE sample for each
 
-4.  compos_cal(msg, colors, shapes)
+4.  ** compos_cal(msg, colors, shapes)
     Calculate the compositionalities using metric mentioned in:
         Language as an evolutionary system -- Appendix A (Kirby 2005)
     
@@ -61,7 +61,7 @@ def edit_dist(str1, str2):
     return DM[-1]
 
 #train_recorder(1, 0.5, 0.4 ,0,'intention','execution',rpt_gap = 10)
-def train_recorder(idx_round, r_accuracy, r_loss, r_msglen, lis_msg, spk_msg, rpt_gap = 10):
+def train_recorder(idx_round, r_accuracy, r_loss, r_msglen, lis_msg, spk_msg, rpt_gap = 10, folder='test'):
     '''
         This function will record fundamental training information to a txt file. 
         Usually we record these each round.
@@ -73,25 +73,30 @@ def train_recorder(idx_round, r_accuracy, r_loss, r_msglen, lis_msg, spk_msg, rp
             r_msglen: average message length, note that we can tune the cutting
                       probability in obverter.py to change the expected msg_len
             lis/spk_msg: message of listener and speaker, they should be dicts
-                         so we can calculate Jaccard Similarity between the msg
+                         so we can calculate Edit distance between the msg
                          for each object
             rpt_gap: the gap between two records to the terminal
     '''
-    path = 'runs/' + 'test'
+    path = 'runs/' + folder
     if os.path.exists(path):
         pass
     else:
         os.makedirs(path)
     
-    Edit_dist = edit_dist(lis_msg, spk_msg)
+    sum_dist, cnt = 0, 0
+    for kys in lis_msg.keys():
+        sum_dist += edit_dist(lis_msg[kys], spk_msg[kys])
+        cnt += 1
+    
+    avg_dist = sum_dist/cnt
   
     with open(path+'/train_recorder.txt','a') as f:
-        f.write('Round %d: Acc: %.5f\t Loss: %.5f\t Msg_len: %d\t Edit_Dist: %d \n' \
-                %(idx_round, r_accuracy, r_loss, r_msglen, Edit_dist))
+        f.write('Round %d: Acc: %.5f\t Loss: %.5f\t Msg_len: %.3f\t Edit_Dist: %d \n' \
+                %(idx_round, r_accuracy, r_loss, r_msglen, avg_dist))
     
     if int(idx_round) % int(rpt_gap) == 1:
-        print('Round %d: Acc: %.5f\t Loss: %.5f\t Msg_len: %d\t Edit_Dist: %d \n' \
-                %(idx_round, r_accuracy, r_loss, r_msglen, Edit_dist))
+        print('Round %d: Acc: %.5f\t Loss: %.5f\t Msg_len: %.3f\t Edit_Dist: %d \n' \
+                %(idx_round, r_accuracy, r_loss, r_msglen, avg_dist))
 
 
 def sample_msg_gen(agent, attributes, images_dict, max_sentence_len, 
@@ -157,9 +162,27 @@ def consist_checker(msg_all):
     
     return consistants
 
+   
+def msg_recorder(msg, name='msg', folder='test'):
+    '''
+        Help to record the msg (dictionary) to a txt file and npy file.
+        The input msg should be a dictionary, similar to:
+            {('green','box'): 'bb', ('blue','box'): 'bc'}
+    '''
+    path = 'runs/' + folder
+    if os.path.exists(path):
+        pass
+    else:
+        os.makedirs(path)   
     
-
-
+    np.save(path+'/'+name+'.npy',msg)
+    # if want read: a=np.load('test_msg.npy').item()
+    
+    with open(path+'/'+name+'.txt','a') as f:
+        for ky in msg.keys():
+            f.write(str(ky))
+            max_msg,_ = max_list(msg[ky])
+            f.write(':\t' + max_msg + '\n')
 
 
 

@@ -27,7 +27,7 @@ terminal, txt files, pdf files or npy files. Here are the functions:
     3.1 all_msg_gen(agent, colors, shapes)
     Help to generate messages for all the objects with ONE sample for each
 
-4.  ** compos_cal(msg, colors, shapes)
+4.  compos_cal(msg, colors, shapes)
     Calculate the compositionalities using metric mentioned in:
         Language as an evolutionary system -- Appendix A (Kirby 2005)
     
@@ -35,11 +35,35 @@ terminal, txt files, pdf files or npy files. Here are the functions:
 """
 
 import numpy as np
+import pandas as pd
+import random
 import os
+import matplotlib.pyplot as plt
 from data import *
 from obverter import *
 #from train import args
 
+
+# concept1, concept2 = ('blue','box'), ('red','circle')
+# concept1, concept2 = ('blue','circle'), ('red','circle')
+def hanmming_dist(concept1, concept2):
+    '''
+        Calculate the hanmming distance of two concepts.
+        The input concepts should be tuple, e.g. ('red','box')
+        We require concept1 and 2 have the same number of attributes,
+        i.e., len(concept1)==len(concept2)
+    '''
+    acc_dist = 0
+    for i in range(len(concept1)):
+        if concept1[i]!=concept2[i]:
+            acc_dist += 1
+    
+    return acc_dist
+    
+    
+    
+
+# str1, str2 = 'horse', 'rose'
 def edit_dist(str1, str2):
     '''
         Calculate the edit distance of two strings.
@@ -127,9 +151,9 @@ def sample_msg_gen(agent, attributes, images_dict, max_sentence_len,
      
     return msg 
             
-spk_msg_all = {}      
-spk_msg_all['green','box'] = ['aaa', 'bbb', 'ccc']       
-spk_msg_all['blue','box'] = ['aaa', 'bc', 'bc'] 
+#spk_msg_all = {}      
+#spk_msg_all['green','box'] = ['aaa', 'bbb', 'ccc']       
+#spk_msg_all['blue','box'] = ['aaa', 'bc', 'bc'] 
 
 def max_list(lt):
     '''
@@ -184,10 +208,119 @@ def msg_recorder(msg, name='msg', folder='test'):
             max_msg,_ = max_list(msg[ky])
             f.write(':\t' + max_msg + '\n')
 
+'''
+msg = {}   
+# === Degenerate =====   
+msg['green','box'] = ['aa']       
+msg['blue','box'] = ['aa'] 
+msg['green','circle'] = ['aa']       
+msg['blue','circle'] = ['aa'] 
+compos_cal(msg)
+# === Holistic =====   
+msg['green','box'] = ['aa']       
+msg['blue','box'] = ['bb'] 
+msg['green','circle'] = ['ba']       
+msg['blue','circle'] = ['ab']
+compos_cal(msg)
+# === Compositional == 
+msg['green','box'] = ['aa']       
+msg['blue','box'] = ['ba'] 
+msg['green','circle'] = ['ab']       
+msg['blue','circle'] = ['bb'] 
+compos_cal(msg) 
+'''
 
+def compos_cal(msg):
+    '''
+        Calculate the compositionalities using metric mentioned in:
+        Language as an evolutionary system -- Appendix A (Kirby 2005)
+        Input:
+            msg: dictionary for a all possible {(color, shape):msg}
+        Output:
+            corr_pearson:   person correlation
+            corr_spearma:  spearman correlation
+    '''
+    keys_list = list(msg.keys())
+    concept_pairs = []
+    message_pairs = []
+    # ===== Form concepts and message pairs ========
+    for i in range(len(keys_list)):
+        #for j in range(i+1, len(keys_list)):
+        for j in range(len(keys_list)):
+            tmp1 = (keys_list[i],keys_list[j])
+            concept_pairs.append((keys_list[i],keys_list[j]))
+            tmp2 = (msg[tmp1[0]][0],msg[tmp1[1]][0])
+            message_pairs.append(tmp2)
+            
+    # ===== Calculate distant for these pairs ======
+    concept_HD = []
+    message_ED = []
+    for i in range(len(concept_pairs)):
+        concept1, concept2 = concept_pairs[i]
+        message1, message2 = message_pairs[i]
+        concept_HD.append(hanmming_dist(concept1, concept2))
+        message_ED.append(edit_dist(message1, message2))
+    
+    if np.sum(message_ED)==0:
+        message_ED = np.asarray(message_ED)+0.1
+        message_ED[-1] -= 0.01
+ 
+    dist_table = pd.DataFrame({'HD':np.asarray(concept_HD),
+                               'ED':np.asarray(message_ED)})    
+    corr_pearson = dist_table.corr()['ED']['HD']
+    corr_spearma = dist_table.corr('spearman')['ED']['HD']
+     
+    return corr_pearson, corr_spearma
 
+'''
+msg = {}   
+# === Degenerate =====   
+msg['green','box'] = ['aa']       
+msg['blue','box'] = ['aa'] 
+msg['green','circle'] = ['aa']       
+msg['blue','circle'] = ['bb'] 
+advanced_compos_cal(msg)
+# === Holistic =====   
+msg['green','box'] = ['aa']       
+msg['blue','box'] = ['bb'] 
+msg['green','circle'] = ['ba']       
+msg['blue','circle'] = ['ab']
+advanced_compos_cal(msg)
+# === Compositional == 
+msg['green','box'] = ['aa']       
+msg['blue','box'] = ['ba'] 
+msg['green','circle'] = ['ab']       
+msg['blue','circle'] = ['bb'] 
+advanced_compos_cal(msg) 
+'''
 
-
+def advanced_compos_cal(msg):
+    '''
+        Calculate the compositionalities using metric mentioned in:
+        Language as an evolutionary system -- Appendix A (Kirby 2005)
+        We need shuffle the mapping between concepts and messages, then see the
+        discribution of correlation coefficient.
+        Input:
+            msg: dictionary for a all possible {(color, shape):msg}
+    '''
+    iterations = 10000
+    true_pearson, true_spearma = compos_cal(msg)
+    dist_pearson, dist_spearma = [], []
+    shuffle_msg = {}
+    for i in range(iterations):
+        value_list = list(msg.values())
+        key_list = list(msg.keys())
+        for j in range(len(key_list)):
+            ridx = np.random.randint(0,len(key_list))
+            shuffle_msg[key_list[j]] = value_list[ridx]
+        
+        tmp1, tmp2 = compos_cal(shuffle_msg)
+        dist_pearson.append(tmp1)
+        dist_spearma.append(tmp2)
+    ratio_pearson = np.sum(dist_pearson<true_pearson)/iterations
+    ratio_spearma = np.sum(dist_spearma<true_spearma)/iterations
+    
+    return ratio_pearson, ratio_spearma
 
 
 

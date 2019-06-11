@@ -14,7 +14,7 @@ def msg_gen_decoder(agent, img, max_sentence_len, vocab_size, device):
     prob = 0
     next_msg = np.tile(np.expand_dims(np.arange(0, vocab_size), 1), 1) # (vocab_s, 1)
     dup_imgs = np.array([img]).repeat(vocab_size, axis=0)
-    dup_imgs = torch.tensor(dup_imgs).float()       # The images and messages must be torch tensor
+    dup_imgs = torch.tensor(dup_imgs).float().to(device)       # The images and messages must be torch tensor
     
     for l in range(max_sentence_len):
         if l > 0:

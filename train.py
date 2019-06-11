@@ -4,10 +4,10 @@ import torch
 from torch.nn import NLLLoss
 import matplotlib.pyplot as plt
 
-import obverter
-from data import load_images_dict, get_batches
-from model import ConvModel
-from resultrecorder import *
+import models.obverter as obverter
+from data_prepare.data import load_images_dict, get_batches
+from models.model import ConvModel
+from utils.resultrecorder import *
 
 plt.switch_backend('agg')
 
@@ -110,9 +110,10 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
     return round_accuracy, round_loss, round_sentence_length, msg
 
 
-agent1_accuracy_history = []
-agent1_message_length_history = []
-agent1_loss_history = []
+agent2_accuracy_history = []
+agent2_message_length_history = []
+agent2_loss_history = []
+agents_msgdist_history = []
 
 os.makedirs('checkpoints', exist_ok=True)
 
@@ -132,12 +133,6 @@ for round in range(args.num_rounds):
     r_accuracy, r_loss, r_msglen, ag1_msg = train_round(agent1, agent2, batches, optimizer2, 
                                                                     args.max_sentence_len, args.vocab_size,
                                                                     idx_round = round)
-    #print_round_stats(round_accuracy, round_loss, round_sentence_length)
-
-    agent1_accuracy_history.append(round_accuracy)
-    agent1_message_length_history.append(round_sentence_length / 20)
-    agent1_loss_history.append(round_loss)
-
     round += 1
     print("replacing roles")
     print("********** round %d **********" % round)
@@ -145,24 +140,51 @@ for round in range(args.num_rounds):
     r_accuracy, r_loss, r_msglen, ag2_msg = train_round(agent2, agent1, batches, optimizer1, 
                                                                     args.max_sentence_len, args.vocab_size,
                                                                     idx_round = round)
-    train_recorder(round, r_accuracy, r_loss, r_msglen, ag1_msg, ag2_msg, rpt_gap = 10, folder='test')
-    #print_round_stats(round_accuracy, round_loss, round_sentence_length)
-    # ============ For function test ==================
-    attributes = [('blue','cylinder'), ('green','box')]
-    spk_msg = sample_msg_gen(speaker, attributes, images_dict, 
-                                      args.max_sentence_len, args.vocab_size, device, n_samples=3,)  
-    # ============ For function test ==================
-    if round % 50 == 0:
-        t = list(range(len(agent1_accuracy_history)))
-        plt.plot(t, agent1_accuracy_history, label="Accuracy")
-        plt.plot(t, agent1_message_length_history, label="Message length (/20)")
-        plt.plot(t, agent1_loss_history, label="Training loss")
+
+    msg_dist = train_recorder(round, r_accuracy, r_loss, r_msglen, ag1_msg, ag2_msg, rpt_gap = 10, folder=args.exp_name)
+    
+    agent2_accuracy_history.append(r_accuracy)
+    agent2_message_length_history.append(r_msglen / 20)
+    agent2_loss_history.append(r_loss)
+    agents_msgdist_history.append(msg_dist / 20)
+
+    if round % 50 == 1:
+        path = 'runs/' + args.exp_name
+        if os.path.exists(path):
+            pass
+        else:
+            os.makedirs(path)
+
+        t = list(range(len(agent2_accuracy_history)))
+        plt.plot(t, agent2_accuracy_history, label="Accuracy")
+        plt.plot(t, agent2_message_length_history, label="Message length (/20)")
+        plt.plot(t, agent2_loss_history, label="Training loss")
+        plt.plot(t, agents_msgdist_history, label = "Message distance (/20)")
+
 
         plt.xlabel('# Rounds')
         plt.legend()
-        plt.savefig("graph.png")
+        plt.savefig(path+"/graph.png")
         plt.clf()
 
-    if round % 500 == 0:
-        torch.save(agent1.state_dict(), os.path.join('checkpoints', 'agent1-%d.ckp' % round))
-        torch.save(agent2.state_dict(), os.path.join('checkpoints', 'agent2-%d.ckp' % round))
+    if round % 500 == 1:
+        path = 'runs/' + args.exp_name+'/checkpoints'
+        if os.path.exists(path):
+            pass
+        else:
+            os.makedirs(path)
+        torch.save(agent1.state_dict(), os.path.join(path, 'agent1-%d.ckp' % round))
+        torch.save(agent2.state_dict(), os.path.join(path, 'agent2-%d.ckp' % round))
+        
+        all_objects = all_objects(exclude=None)
+        spk_msg_all = sample_msg_gen(agent1, all_objects, images_dict, 
+                                      args.max_sentence_len, args.vocab_size, device, n_samples=3)  
+        spk_msg_one = sample_msg_gen(agent1, all_objects, images_dict, 
+                                      args.max_sentence_len, args.vocab_size, device, n_samples=1)
+        consist_recorder(spk_msg_all, round,folder = args.exp_name)
+        msg_recorder(spk_msg_one, round, name='msg', folder = args.exp_name)        
+        
+        
+        
+        
+        

@@ -19,7 +19,7 @@ parser.add_argument('--num_rounds', type=int, default=20000, help='number of tot
 parser.add_argument('--num_games_per_round', type=int, default=20, help='number of games per round')
 parser.add_argument('--vocab_size', type=int, default=5, help='vocabulary size')
 parser.add_argument('--max_sentence_len', type=int, default=20, help='maximum sentence length')
-parser.add_argument('--data_n_samples', type=int, default=100, help='number of samples per color, shape combination')
+parser.add_argument('--data_n_samples', type=int, default = 100, help=' number of samples per color, shape combination')
 parser.add_argument('--exp_name', default='test', help='the name of the folder to store results')
 
 

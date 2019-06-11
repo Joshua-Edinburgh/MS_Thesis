@@ -176,10 +176,10 @@ for round in range(args.num_rounds):
         torch.save(agent1.state_dict(), os.path.join(path, 'agent1-%d.ckp' % round))
         torch.save(agent2.state_dict(), os.path.join(path, 'agent2-%d.ckp' % round))
         
-        all_objects = all_objects(exclude=None)
-        spk_msg_all = sample_msg_gen(agent1, all_objects, images_dict, 
+        all_things = all_objects(exclude=None)
+        spk_msg_all = sample_msg_gen(agent1, all_things, images_dict, 
                                       args.max_sentence_len, args.vocab_size, device, n_samples=3)  
-        spk_msg_one = sample_msg_gen(agent1, all_objects, images_dict, 
+        spk_msg_one = sample_msg_gen(agent1, all_things, images_dict, 
                                       args.max_sentence_len, args.vocab_size, device, n_samples=1)
         consist_recorder(spk_msg_all, round,folder = args.exp_name)
         msg_recorder(spk_msg_one, round, name='msg', folder = args.exp_name)        

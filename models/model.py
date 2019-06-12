@@ -18,7 +18,7 @@ class ConvModel(nn.Module):
         n_filters = 20
         
         # For 64x64 data, we should use a smaller CNN
-        
+        '''
         self.conv_net = nn.Sequential(
             nn.Conv2d(3, n_filters, 3, stride=2),
             nn.BatchNorm2d(n_filters),
@@ -38,8 +38,6 @@ class ConvModel(nn.Module):
             nn.ReLU(),
         )
 
-
-        '''
         # For 32x32 data, we should use a smaller CNN
         
         self.conv_net = nn.Sequential(
@@ -58,7 +56,7 @@ class ConvModel(nn.Module):
             nn.ReLU(),
         )
         
-        
+        '''
         # For 128x128 data, we should use a larger CNN
         self.conv_net = nn.Sequential(
             nn.Conv2d(3, n_filters, 3, stride=2),
@@ -81,7 +79,7 @@ class ConvModel(nn.Module):
             nn.Linear(180, 50),
             nn.ReLU(),
         )
-        '''
+        
 
         self.lin2 = nn.Sequential(
             nn.Linear(50+64, 128),

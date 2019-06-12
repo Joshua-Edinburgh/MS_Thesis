@@ -42,7 +42,7 @@ def load_images_dict(data_n_samples):
             for i in range(0, data_n_samples):
                 path = 'assets/%s-%s-%d.png' % (color, object_type, i)
                 images_cache[color, object_type, i] = np.array(
-                    list(Image.open(path).getdata())).reshape((64, 64, 3))
+                    list(Image.open(path).getdata())).reshape((128, 128, 3))
 
     pickle.dump(images_cache, open('assets/cache.pkl', 'wb'))
     print("Saved cache file %s" % cache_filename)

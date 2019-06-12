@@ -15,7 +15,7 @@ class ConvModel(nn.Module):
     def __init__(self, vocab_size):
         super().__init__()
         self.vocab_size = vocab_size
-        n_filters = 18
+        n_filters = 20
         
         # For 64x64 data, we should use a smaller CNN
         

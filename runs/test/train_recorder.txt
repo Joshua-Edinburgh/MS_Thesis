@@ -1,0 +1,1 @@
+Round 1: Acc: 0.74100	 Loss: 0.57725	 Msg_len: 20.000	 Edit_Dist: 20 

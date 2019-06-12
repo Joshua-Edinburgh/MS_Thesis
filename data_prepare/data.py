@@ -78,10 +78,11 @@ def get_batches(images_cache, data_n_samples, n_batches=20, batch_size=50):
             
     '''
     batches = []
-
-    n_same = int(0.25*batch_size)
-    n_same_shape = int(0.3*batch_size)
-    n_same_color = int(0.2*batch_size)
+    
+    partial_same = random.random()*0.5+0.2
+    n_same = int(partial_same*batch_size)
+    n_same_shape = int(0.15*batch_size)
+    n_same_color = int(0.15*batch_size)
     n_random = batch_size - n_same_shape - n_same_color - n_same
 
     for ib in range(n_batches):

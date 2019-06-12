@@ -148,7 +148,6 @@ for round in range(args.num_rounds):
     r_accuracy, r_loss, r_msglen, ag2_msg = train_round(agent2, agent1, batches, optimizer1,
                                                                     args.max_sentence_len, args.vocab_size,
                                                                     idx_round = round)
-
     msg_dist = train_recorder(round, r_accuracy, r_loss, r_msglen, ag1_msg, ag2_msg, rpt_gap = 10, folder=args.exp_name)
 
     agent2_accuracy_history.append(r_accuracy)

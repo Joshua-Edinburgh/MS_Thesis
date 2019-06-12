@@ -13,7 +13,7 @@ plt.switch_backend('agg')
 
 parser = argparse.ArgumentParser(description='Emerging Language')
 
-parser.add_argument('--lr', type=float, default=6e-4, help='learning rate')
+parser.add_argument('--lr', type=float, default=1e-3, help='learning rate')
 parser.add_argument('--batch_size', type=int, default=50, help='number of images in a batch')
 parser.add_argument('--num_rounds', type=int, default=20000, help='number of total training rounds')
 parser.add_argument('--num_games_per_round', type=int, default=20, help='number of games per round')
@@ -138,15 +138,12 @@ def print_round_stats(acc, sl, loss):
 
 
 for round in range(args.num_rounds):
-    print("********** round %d **********" % round)
     batches = get_batches(images_dict, args.data_n_samples, args.num_games_per_round, args.batch_size)
 
     r_accuracy, r_loss, r_msglen, ag1_msg = train_round(agent1, agent2, batches, optimizer2,
                                                                     args.max_sentence_len, args.vocab_size,
                                                                     idx_round = round)
     round += 1
-    print("replacing roles")
-    print("********** round %d **********" % round)
 
     r_accuracy, r_loss, r_msglen, ag2_msg = train_round(agent2, agent1, batches, optimizer1,
                                                                     args.max_sentence_len, args.vocab_size,

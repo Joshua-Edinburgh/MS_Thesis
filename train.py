@@ -49,9 +49,9 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
         Input:
             speaker, listener: the agent initialized using ConvModel
             batches: the data input (image1, image2, label, description)
-            optimizer: 
+            optimizer:
             max_sentence_len:
-            vocab_size:           
+            vocab_size:
     '''
     speaker.train(False)
     listener.train(True)
@@ -66,7 +66,7 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
         input1, input2, labels, descriptions = batch
         input1, input2 = torch.tensor(input1).float().to(device), torch.tensor(input2).float().to(device)
         labels = torch.tensor(labels).to(device)
-        
+
         # ========== Play the game and backpropagation ================
         speaker_actions, speaker_probs = obverter.decode(speaker, input1, max_sentence_len, vocab_size, device)
 
@@ -106,7 +106,7 @@ def train_round(speaker, listener, batches, optimizer, max_sentence_len, vocab_s
     round_accuracy = (round_correct / round_total).item()
     round_loss = (round_loss / round_total).item()
     round_sentence_length = (round_sentence_length / round_total).item()
-    
+
     return round_accuracy, round_loss, round_sentence_length, msg
 
 
@@ -130,19 +130,19 @@ for round in range(args.num_rounds):
     print("********** round %d **********" % round)
     batches = get_batches(images_dict, args.data_n_samples, args.num_games_per_round, args.batch_size)
 
-    r_accuracy, r_loss, r_msglen, ag1_msg = train_round(agent1, agent2, batches, optimizer2, 
+    r_accuracy, r_loss, r_msglen, ag1_msg = train_round(agent1, agent2, batches, optimizer2,
                                                                     args.max_sentence_len, args.vocab_size,
                                                                     idx_round = round)
     round += 1
     print("replacing roles")
     print("********** round %d **********" % round)
 
-    r_accuracy, r_loss, r_msglen, ag2_msg = train_round(agent2, agent1, batches, optimizer1, 
+    r_accuracy, r_loss, r_msglen, ag2_msg = train_round(agent2, agent1, batches, optimizer1,
                                                                     args.max_sentence_len, args.vocab_size,
                                                                     idx_round = round)
 
     msg_dist = train_recorder(round, r_accuracy, r_loss, r_msglen, ag1_msg, ag2_msg, rpt_gap = 10, folder=args.exp_name)
-    
+
     agent2_accuracy_history.append(r_accuracy)
     agent2_message_length_history.append(r_msglen / 20)
     agent2_loss_history.append(r_loss)
@@ -175,16 +175,16 @@ for round in range(args.num_rounds):
             os.makedirs(path)
         torch.save(agent1.state_dict(), os.path.join(path, 'agent1-%d.ckp' % round))
         torch.save(agent2.state_dict(), os.path.join(path, 'agent2-%d.ckp' % round))
-        
+
         all_things = all_objects(exclude=None)
-        spk_msg_all = sample_msg_gen(agent1, all_things, images_dict, 
-                                      args.max_sentence_len, args.vocab_size, device, n_samples=3)  
-        spk_msg_one = sample_msg_gen(agent1, all_things, images_dict, 
+        spk_msg_all = sample_msg_gen(agent1, all_things, images_dict,
+                                      args.max_sentence_len, args.vocab_size, device, n_samples=3)
+        spk_msg_one = sample_msg_gen(agent1, all_things, images_dict,
                                       args.max_sentence_len, args.vocab_size, device, n_samples=1)
         consist_recorder(spk_msg_all, round,folder = args.exp_name)
-        msg_recorder(spk_msg_one, round, name='msg', folder = args.exp_name)        
-        
-        
-        
-        
-        
+        msg_recorder(spk_msg_one, round, name='msg', folder = args.exp_name)
+
+
+
+
+

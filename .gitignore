@@ -3,3 +3,4 @@ __pycache__
 mnist
 *.ckp
 .ipynb_checkpoints
+runs

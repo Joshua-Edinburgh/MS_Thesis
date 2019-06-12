@@ -37,7 +37,7 @@ loss_fn = NLLLoss()
 
 # Remember the way it used for initialize parameters according to whether it require grad.
 optimizer1 = torch.optim.Adam([p for p in agent1.parameters() if p.requires_grad], args.lr)
-optimizer2 = torch.optim.Adam([p for p in agent2.parameters() if p.requires_grad], args.lr)
+optimizer2 = torch.optim.Adam([p for p in agent2.parameters() if p.requires_grad], args.lr*1.001)
 
 
 

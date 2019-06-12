@@ -21,7 +21,7 @@ parser.add_argument('--vocab_size', type=int, default=5, help='vocabulary size')
 parser.add_argument('--max_sentence_len', type=int, default=20, help='maximum sentence length')
 parser.add_argument('--data_n_samples', type=int, default = 100, help=' number of samples per color, shape combination')
 parser.add_argument('--exp_name', default='test', help='the name of the folder to store results')
-
+parser.add_argument('--seed', default=2019, help='Random seed')
 
 args = parser.parse_args()
 
@@ -38,6 +38,17 @@ loss_fn = NLLLoss()
 # Remember the way it used for initialize parameters according to whether it require grad.
 optimizer1 = torch.optim.Adam([p for p in agent1.parameters() if p.requires_grad], args.lr)
 optimizer2 = torch.optim.Adam([p for p in agent2.parameters() if p.requires_grad], args.lr)
+
+
+
+def setup_seed(seed):
+     torch.manual_seed(seed)
+     torch.cuda.manual_seed_all(seed)
+     np.random.seed(seed)
+     random.seed(seed)
+     torch.backends.cudnn.deterministic = True
+     
+setup_seed(args.seed)
 
 
 def get_message(s):

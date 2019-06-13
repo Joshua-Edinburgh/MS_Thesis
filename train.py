@@ -27,7 +27,7 @@ args = parser.parse_args()
 
 images_dict = load_images_dict(args.data_n_samples)
 
-device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 agent1 = ConvModel(vocab_size=args.vocab_size).to(device)
 agent2 = ConvModel(vocab_size=args.vocab_size).to(device)
@@ -47,7 +47,7 @@ def setup_seed(seed):
      np.random.seed(seed)
      random.seed(seed)
      torch.backends.cudnn.deterministic = True
-     
+
 setup_seed(args.seed)
 
 
@@ -185,7 +185,7 @@ for round in range(args.num_rounds):
 
         all_things = all_objects(exclude=None)
         spk_msg_all = sample_msg_gen(agent1, all_things, images_dict,
-                                      args.max_sentence_len, args.vocab_size, device, n_samples=3)
+                                      args.max_sentence_len, args.vocab_size, device, n_samples=100)
         spk_msg_one = sample_msg_gen(agent1, all_things, images_dict,
                                       args.max_sentence_len, args.vocab_size, device, n_samples=1)
         consist_recorder(spk_msg_all, round,folder = args.exp_name)

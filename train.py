@@ -5,7 +5,7 @@ from torch.nn import NLLLoss
 import matplotlib.pyplot as plt
 
 import models.obverter as obverter
-from data_prepare.data import load_images_dict, get_batches
+from data_prepare.data import *
 from models.model import ConvModel
 from utils.resultrecorder import *
 
@@ -27,7 +27,7 @@ args = parser.parse_args()
 
 images_dict = load_images_dict(args.data_n_samples)
 
-device = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+device = torch.device("cuda:1" if torch.cuda.is_available() else "cpu")
 
 agent1 = ConvModel(vocab_size=args.vocab_size).to(device)
 agent2 = ConvModel(vocab_size=args.vocab_size).to(device)
@@ -127,6 +127,7 @@ agent2_loss_history = []
 agents_msgdist_history = []
 
 os.makedirs('checkpoints', exist_ok=True)
+test_objects = gen_objects(types = 'test')
 
 
 def print_round_stats(acc, sl, loss):
@@ -148,20 +149,24 @@ for round in range(args.num_rounds):
     r_accuracy, r_loss, r_msglen, ag2_msg = train_round(agent2, agent1, batches, optimizer1,
                                                                     args.max_sentence_len, args.vocab_size,
                                                                     idx_round = round)
-    msg_dist = train_recorder(round, r_accuracy, r_loss, r_msglen, ag1_msg, ag2_msg, rpt_gap = 10, folder=args.exp_name)
+    msg_dist = train_recorder(round, r_accuracy, r_loss, r_msglen, ag1_msg, ag2_msg, 
+                              rpt_gap = 10, folder=args.exp_name)       
 
     agent2_accuracy_history.append(r_accuracy)
     agent2_message_length_history.append(r_msglen / 20)
     agent2_loss_history.append(r_loss)
-    agents_msgdist_history.append(msg_dist / 20)
+    agents_msgdist_history.append(msg_dist / 20)       
 
-    if round % 50 == 1:
+    if round % 20 == 1:
         path = 'runs/' + args.exp_name
         if os.path.exists(path):
             pass
         else:
             os.makedirs(path)
-
+        
+        a1_acc, a2_acc = zero_shot(test_objects, agent1, agent2, images_dict, args.max_sentence_len, 
+                              args.vocab_size, device, idx_round=round, path=path, n_samples = 20)          
+        
         t = list(range(len(agent2_accuracy_history)))
         plt.plot(t, agent2_accuracy_history, label="Accuracy")
         plt.plot(t, agent2_message_length_history, label="Message length (/20)")
@@ -183,9 +188,9 @@ for round in range(args.num_rounds):
         torch.save(agent1.state_dict(), os.path.join(path, 'agent1-%d.ckp' % round))
         torch.save(agent2.state_dict(), os.path.join(path, 'agent2-%d.ckp' % round))
 
-        all_things = all_objects(exclude=None)
+        all_things = gen_objects(types = 'train')
         spk_msg_all = sample_msg_gen(agent1, all_things, images_dict,
-                                      args.max_sentence_len, args.vocab_size, device, n_samples=3)
+                                      args.max_sentence_len, args.vocab_size, device, n_samples=100)
         spk_msg_one = sample_msg_gen(agent1, all_things, images_dict,
                                       args.max_sentence_len, args.vocab_size, device, n_samples=1)
         consist_recorder(spk_msg_all, round,folder = args.exp_name)

@@ -30,6 +30,10 @@ terminal, txt files, pdf files or npy files. Here are the functions:
 4.  compos_cal(msg, colors, shapes)
     Calculate the compositionalities using metric mentioned in:
         Language as an evolutionary system -- Appendix A (Kirby 2005)
+
+5.  zero_shot(test_objects, agent1, agent2, n_samples = 20)
+    Conduct zero-shot test. Given the list of non-seen objects and two agents,
+    calcuate the success rate of playing game.
     
 @author: xiayezi
 """
@@ -153,7 +157,7 @@ def sample_msg_gen(agent, attributes, images_dict, max_sentence_len,
                 
             img = images_dict[color, shape, nn] / 256
             
-            act, _ = msg_gen_decoder(agent, img, max_sentence_len, vocab_size, device)
+            act, _, _ = msg_gen_decoder(agent, img, max_sentence_len, vocab_size, device)
             msg[color, shape].append(act)
      
     return msg 
@@ -349,3 +353,45 @@ def msg_recorder(msg, idx_round, name='msg', folder='test'):
             f.write(':\t' + max_msg + '\n')
         f.write('The compositionality of this language is (%4f,%4f)\n'%(comp[0],comp[1]))
     print('The compositionality of this language is (%4f,%4f)'%(comp[0],comp[1]))
+
+def zero_shot(test_objects, agent1, agent2, images_dict, max_sentence_len, 
+                   vocab_size, device, path, idx_round, n_samples = 20):
+    '''
+        Conduct zero-shot test. Given the list of non-seen objects and two agents,
+        calcuate the success rate of playing game.    
+    '''
+    # ========= Prepare the data for test ============
+    a1_result = 0
+    a2_result = 0
+    n_objects = len(test_objects)
+    agent1.train(False)
+    agent2.train(False)
+    
+    for color, shape in test_objects:        
+        for n in range(n_samples):
+            img = images_dict[color, shape, n] / 256            
+            
+            a1_msg, _, a1_acts = msg_gen_decoder(agent1, img, max_sentence_len, vocab_size, device)
+            prob1 = prd_gen_decoder(agent2, img, a1_acts, max_sentence_len, vocab_size, device)
+            
+            a2_msg, _, a2_acts = msg_gen_decoder(agent2, img, max_sentence_len, vocab_size, device)
+            prob2 = prd_gen_decoder(agent1, img, a2_acts, max_sentence_len, vocab_size, device)            
+            
+            if prob1 > 0.95: a1_result += 1
+            if prob2 > 0.95: a2_result += 1
+
+    with open(path+'/zero_shot.txt','a') as f: 
+        f.write('Acc of round %d is: (%4f,%4f)\n'%(idx_round,a1_result/(n_samples*n_objects),
+                                      a2_result/(n_samples*n_objects)))
+
+            
+    return a1_result/(n_samples*n_objects), a2_result/(n_samples*n_objects)
+
+
+
+
+
+
+
+
+

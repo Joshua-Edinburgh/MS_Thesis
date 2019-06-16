@@ -19,19 +19,30 @@ def msg_gen_decoder(agent, img, max_sentence_len, vocab_size, device):
     for l in range(max_sentence_len):
         if l > 0:
             # ------ Duplicate the history messages to a matrix, each row is a new candidate seq.
-            hist_msg = np.expand_dims(best_msg[:l],2).repeat(vocab_size, axis=1).transpose()            
+            hist_msg = np.expand_dims(best_acts[:l],2).repeat(vocab_size, axis=1).transpose()            
             cand_msg = np.concatenate((hist_msg, next_msg), axis=1)
         else:
             cand_msg = next_msg       
         
         logits, probs = agent(dup_imgs, torch.Tensor(cand_msg).long().to(device))
         prob, sel_idx = torch.max(probs, 0)
-        best_msg = cand_msg[sel_idx,:]
+        best_acts = cand_msg[sel_idx,:]
         if prob>0.95:
             break
-    best_sentence = ''.join([chr(97+int(v)) for v in best_msg])
+    best_sentence = ''.join([chr(97+int(v)) for v in best_acts])
     
-    return best_sentence, prob
+    return best_sentence, prob, best_acts
+
+def prd_gen_decoder(agent, img, acts, max_sentence_len, vocab_size, device):
+    '''
+        Given agent, img and message, output the prediction probability (=1)
+    '''
+    img_tensor = torch.tensor(img).float().to(device).unsqueeze(0)
+    _, prob = agent(img_tensor, torch.Tensor(acts).long().to(device).unsqueeze(0))
+    
+    return prob.detach()
+
+
 
 def decode(model, all_inputs, max_sentence_len, vocab_size, device):
     '''

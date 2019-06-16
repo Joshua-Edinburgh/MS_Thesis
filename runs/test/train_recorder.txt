@@ -3,3 +3,9 @@ Round 1: Acc: 0.60400	 Loss: 0.67361	 Msg_len: 20.000	 Edit_Dist: 10
 Round 2: Acc: 0.52400	 Loss: 0.69560	 Msg_len: 20.000	 Edit_Dist: 20 
 Round 3: Acc: 0.74500	 Loss: 0.57537	 Msg_len: 20.000	 Edit_Dist: 20 
 Round 4: Acc: 0.54600	 Loss: 0.68931	 Msg_len: 20.000	 Edit_Dist: 13 
+Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 
+Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 
+Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 
+Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 
+Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 
+Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 

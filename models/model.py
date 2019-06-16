@@ -120,7 +120,7 @@ class ConvModel(nn.Module):
     def sentence_rep(self, input):
         '''
             Sentence representation. Input is one sentence.
-
+            Input text should like: 
         '''
         sentence_lengths = get_sentence_lengths(input, vocab_size=self.vocab_size)
         output = self.embeddings(input)

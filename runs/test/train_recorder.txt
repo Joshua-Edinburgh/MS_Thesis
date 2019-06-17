@@ -9,3 +9,4 @@ Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16
 Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 
 Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 
 Round 1: Acc: 0.51500	 Loss: 0.69367	 Msg_len: 20.000	 Edit_Dist: 16 
+Round 1: Acc: 0.52600	 Loss: 0.69286	 Msg_len: 20.000	 Edit_Dist: 0 

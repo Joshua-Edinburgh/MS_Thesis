@@ -354,6 +354,56 @@ def msg_recorder(msg, idx_round, name='msg', folder='test'):
         f.write('The compositionality of this language is (%4f,%4f)\n'%(comp[0],comp[1]))
     print('The compositionality of this language is (%4f,%4f)'%(comp[0],comp[1]))
 
+
+def zero_shot(test_objects, agent1, agent2, images_dict, max_sentence_len, 
+                   vocab_size, device, path, idx_round, n_samples = 20):
+    '''
+        Conduct zero-shot test. This new version not only check whether the agent
+        can correctly decide the two same image is same, but also need to decide 
+        the two different images are different.
+        In this function the n_samples should be the maximum samples of each object,
+        but in test, we only randomly select one.
+    '''
+    # ========= Prepare the data for test ============
+    th = 0.6
+    a1_result = 0
+    a2_result = 0
+    cnt = 0
+    agent1.train(False)
+    agent2.train(False)
+    
+    all_things = gen_objects(types = 'all')
+    
+    for color1, shape1 in test_objects:  
+        n = random.randint(0,n_samples)
+        img1 = images_dict[color1, shape1, n] / 256 
+        
+        for color2, shape2 in all_things:
+            cnt += 1
+            img2 = images_dict[color2, shape2, n] / 256
+            tgt = (color1, shape1)==(color2, shape2)
+            a1_msg, _, a1_acts = msg_gen_decoder(agent1, img1, max_sentence_len, vocab_size, device)
+            prob1 = prd_gen_decoder(agent2, img2, a1_acts, max_sentence_len, vocab_size, device)
+            
+            a2_msg, _, a2_acts = msg_gen_decoder(agent2, img1, max_sentence_len, vocab_size, device)
+            prob2 = prd_gen_decoder(agent1, img2, a2_acts, max_sentence_len, vocab_size, device) 
+            if tgt == True and prob1>th: a1_result += 1
+            if tgt == True and prob2>th: a2_result += 1
+            if tgt == False and prob1<(1-th): a1_result += 1
+            if tgt == False and prob2<(1-th): a2_result += 1
+
+    with open(path+'/zero_shot.txt','a') as f: 
+        f.write('Acc of round %d is: (%4f,%4f)\n'%(idx_round,a1_result/cnt,
+                                      a2_result/cnt))
+
+            
+    return a1_result/cnt, a2_result/cnt
+
+
+
+
+
+"""
 def zero_shot(test_objects, agent1, agent2, images_dict, max_sentence_len, 
                    vocab_size, device, path, idx_round, n_samples = 20):
     '''
@@ -386,7 +436,7 @@ def zero_shot(test_objects, agent1, agent2, images_dict, max_sentence_len,
 
             
     return a1_result/(n_samples*n_objects), a2_result/(n_samples*n_objects)
-
+"""
 
 
 
